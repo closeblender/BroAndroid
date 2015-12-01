@@ -1,5 +1,6 @@
 package com.closestudios.bro;
 
+import android.content.Intent;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import com.closestudios.bro.networking.Bro;
 import com.closestudios.bro.networking.BroMessage;
 import com.closestudios.bro.networking.ServerApiCalls;
 import com.closestudios.bro.util.BroHub;
+import com.closestudios.bro.util.BroPreferences;
 import com.closestudios.bro.util.TabController;
 import com.closestudios.bro.util.TabGroup;
 
@@ -77,7 +79,12 @@ public class MainMenuActivity extends AppCompatActivity implements ServerApiCall
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_sign_out) {
+
+            BroPreferences.getPrefs(this).signOut();
+            finish();
+            startActivity(new Intent(this, SignInActivity.class));
+
             return true;
         }
 

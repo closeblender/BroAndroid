@@ -60,6 +60,8 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
     public void onSuccess(String token, String broName) {
         dismissSpinner();
         BroPreferences.getPrefs(this).setToken(token);
+        BroPreferences.getPrefs(this).setBroName(broName);
+        finish();
         startActivity(new Intent(this, MainMenuActivity.class));
     }
 

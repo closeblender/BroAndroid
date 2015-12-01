@@ -22,6 +22,13 @@ public class BroPreferences {
         return instance;
     }
 
+    public void signOut() {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.remove("token");
+        edit.remove("broname");
+        edit.commit();
+    }
+
     public void setToken(String token) {
         SharedPreferences.Editor edit = prefs.edit();
         edit.putString("token",token);
