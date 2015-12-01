@@ -1,16 +1,24 @@
 package com.closestudios.bro.networking;
 
+import com.closestudios.bro.R;
 import com.closestudios.bro.networking.requests.AddBroRequest;
 import com.closestudios.bro.networking.requests.BlockBroRequest;
+import com.closestudios.bro.networking.requests.GetBroMessageRequest;
 import com.closestudios.bro.networking.requests.GetBrosRequest;
 import com.closestudios.bro.networking.requests.RemoveBroRequest;
+import com.closestudios.bro.networking.requests.SendBroMessageRequest;
 import com.closestudios.bro.networking.requests.SignInCredsRequest;
 import com.closestudios.bro.networking.requests.SignInTokenRequest;
 import com.closestudios.bro.networking.requests.SignUpRequest;
 import com.closestudios.bro.networking.requests.UpdateLocationRequest;
+import com.closestudios.bro.networking.responses.BroMessageResponse;
 import com.closestudios.bro.networking.responses.ErrorResponse;
 import com.closestudios.bro.networking.responses.GetBrosResponse;
 import com.closestudios.bro.networking.responses.SignInResponse;
+import com.closestudios.bro.util.BroApplication;
+import com.closestudios.bro.util.BroPreferences;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +29,9 @@ import java.net.Socket;
  * Created by closestudios on 11/23/15.
  */
 public class NetworkServerApiCalls implements ServerApiCalls {
+
+    //ServerAPIKey:AIzaSyAO39IewFjVE2Mdc4xq3et6j2w0lynoKM4
+    //SenderID:227936239117
 
     NetworkCall networkCall;
     String host;
@@ -40,12 +51,13 @@ public class NetworkServerApiCalls implements ServerApiCalls {
                     // Do Sign Up
                     SignInResponse signInResponse = null;
                     try {
-                        signInResponse = (SignInResponse)sendApiMessage(SignUpRequest.createMessage(broName, password), new SignInResponse());
+                        String gcmId = getGCMId();
+                        signInResponse = (SignInResponse)sendApiMessage(SignUpRequest.createMessage(broName, password, gcmId), new SignInResponse());
 
                         if(signInResponse != null) {
 
                             if (signInResponse.getSuccess()) {
-                                callback.onSuccess(signInResponse.getToken());
+                                callback.onSuccess(signInResponse.getToken(), signInResponse.getBroName());
                             } else {
                                 callback.onError(signInResponse.getError());
                             }
@@ -73,12 +85,13 @@ public class NetworkServerApiCalls implements ServerApiCalls {
                     // Do Sign In
                     SignInResponse signInResponse = null;
                     try {
-                        signInResponse = (SignInResponse)sendApiMessage(SignInCredsRequest.createMessage(broName, password), new SignInResponse());
+                        String gcmId = getGCMId();
+                        signInResponse = (SignInResponse)sendApiMessage(SignInCredsRequest.createMessage(broName, password, gcmId), new SignInResponse());
 
                         if(signInResponse != null) {
 
                             if (signInResponse.getSuccess()) {
-                                callback.onSuccess(signInResponse.getToken());
+                                callback.onSuccess(signInResponse.getToken(), signInResponse.getBroName());
                             } else {
                                 callback.onError(signInResponse.getError());
                             }
@@ -107,12 +120,13 @@ public class NetworkServerApiCalls implements ServerApiCalls {
                     // Do Sign In
                     SignInResponse signInResponse = null;
                     try {
-                        signInResponse = (SignInResponse)sendApiMessage(SignInTokenRequest.createMessage(token), new SignInResponse());
+                        String gcmId = getGCMId();
+                        signInResponse = (SignInResponse)sendApiMessage(SignInTokenRequest.createMessage(token, gcmId), new SignInResponse());
 
                         if(signInResponse != null) {
 
                             if (signInResponse.getSuccess()) {
-                                callback.onSuccess(signInResponse.getToken());
+                                callback.onSuccess(signInResponse.getToken(), signInResponse.getBroName());
                             } else {
                                 callback.onError(signInResponse.getError());
                             }
@@ -303,6 +317,74 @@ public class NetworkServerApiCalls implements ServerApiCalls {
         }
     }
 
+    @Override
+    public void sendBroMessage(final String token, final String broName, final BroMessage message, final UpdateCallback callback) {
+        try {
+            new Thread(new Runnable() {
+                public void run() {
+                    // Do Block Bro
+                    ErrorResponse sendBroMessage = null;
+                    try {
+                        sendBroMessage = (ErrorResponse)sendApiMessage(SendBroMessageRequest.createMessage(token, broName, message), new ErrorResponse());
+
+                        if(sendBroMessage != null) {
+
+                            if (sendBroMessage.getSuccess()) {
+                                callback.onSuccess();
+                            } else {
+                                callback.onError(sendBroMessage.getError());
+                            }
+                        } else {
+                            callback.onError("Send Bro Message Failed");
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callback.onError(e.getMessage());
+                    }
+
+                    networkCall.onComplete(NetworkServerApiCalls.this);
+                }
+            }).start();
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    @Override
+    public void getBroMessage(final String token, final String messageId, final BroMessageCallback callback) {
+        try {
+            new Thread(new Runnable() {
+                public void run() {
+                    // Do Block Bro
+                    BroMessageResponse getBroMessage = null;
+                    try {
+                        getBroMessage = (BroMessageResponse)sendApiMessage(GetBroMessageRequest.createMessage(token, messageId), new BroMessageResponse());
+
+                        if(getBroMessage != null) {
+
+                            if (getBroMessage.getSuccess()) {
+                                callback.onSuccess(getBroMessage.getBroMessage());
+                            } else {
+                                callback.onError(getBroMessage.getError());
+                            }
+                        } else {
+                            callback.onError("Get Bro Message Failed");
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callback.onError(e.getMessage());
+                    }
+
+                    networkCall.onComplete(NetworkServerApiCalls.this);
+                }
+            }).start();
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
     private DataMessage sendApiMessage(byte[] message, DataMessage response) {
 
         Socket socket = null;
@@ -335,6 +417,19 @@ public class NetworkServerApiCalls implements ServerApiCalls {
         }
 
         return response;
+    }
+
+    private String getGCMId() throws IOException {
+        if(BroPreferences.getPrefs(BroApplication.getContext()).hasGCMId()) {
+            return BroPreferences.getPrefs(BroApplication.getContext()).getGCMId();
+        } else {
+            InstanceID instanceID = InstanceID.getInstance(BroApplication.getContext());
+            String token = instanceID.getToken(BroApplication.getContext().getString(R.string.gcm_defaultSenderId),
+                    GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
+
+            BroPreferences.getPrefs(BroApplication.getContext()).setGCMId(token);
+            return token;
+        }
     }
 
 }

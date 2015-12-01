@@ -7,14 +7,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
+import com.closestudios.bro.networking.Bro;
+import com.closestudios.bro.networking.BroMessage;
+import com.closestudios.bro.networking.ServerApiCalls;
+import com.closestudios.bro.util.BroHub;
 import com.closestudios.bro.util.TabController;
 import com.closestudios.bro.util.TabGroup;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class MainMenuActivity extends AppCompatActivity {
+public class MainMenuActivity extends AppCompatActivity implements ServerApiCalls.UpdateCallback, ServerApiCalls.BroCallback {
 
     @InjectView(R.id.pager)
     ViewPager mPager;
@@ -34,6 +39,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
     MainMenuSlideAdapter mPagerAdapter;
     TabController tabController;
+    SpinnerDialogFragment spinnerDialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,4 +84,34 @@ public class MainMenuActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void showSpinner(String title, boolean cancelable) {
+        dismissSpinner();
+
+        spinnerDialogFragment = SpinnerDialogFragment.getInstance(title, cancelable);
+        spinnerDialogFragment.show(getSupportFragmentManager(), "loading");
+    }
+
+    public void dismissSpinner() {
+        if(spinnerDialogFragment != null) {
+            spinnerDialogFragment.dismiss();
+            spinnerDialogFragment = null;
+        }
+    }
+
+    @Override
+    public void onSuccess() {
+        dismissSpinner();
+    }
+
+    @Override
+    public void onSuccess(Bro[] bros) {
+        // Ignore
+        dismissSpinner();
+    }
+
+    @Override
+    public void onError(String error) {
+        dismissSpinner();
+        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+    }
 }

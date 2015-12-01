@@ -1,6 +1,7 @@
 package com.closestudios.bro.util;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.closestudios.bro.BroLocationService;
 
@@ -10,11 +11,13 @@ import com.closestudios.bro.BroLocationService;
 public class BroApplication extends Application {
 
     static BroHub broHub;
+    static Context context;
 
     @Override
     public void onCreate() {
         super.onCreate();
         BroLocationService.tryStartLocationService(this);
+        context = this;
     }
 
     public static BroHub getBroHub(String token) {
@@ -22,6 +25,10 @@ public class BroApplication extends Application {
             broHub = new BroHub(token);
         }
         return broHub;
+    }
+
+    public static Context getContext() {
+        return context;
     }
 
 }

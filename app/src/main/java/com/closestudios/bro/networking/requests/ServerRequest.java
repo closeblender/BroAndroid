@@ -11,7 +11,8 @@ public class ServerRequest extends DataMessage {
     byte[] cachedRequestBytes;
 
     public enum ServerRequestType {
-        SignUp(0), SignInCreds(1), GetBros(2), AddBro(3), UpdateLocation(4), RemoveBro(5), BlockBro(6), SignInToken(7);
+        SignUp(0), SignInCreds(1), GetBros(2), AddBro(3), UpdateLocation(4), RemoveBro(5),
+        BlockBro(6), SignInToken(7), SendBroMessage(8), GetBroMessage(9);
 
         private final int value;
         private ServerRequestType(int value) {

@@ -16,7 +16,7 @@ public interface ServerApiCalls {
     void signIn(String token, SignInCallback callback);
 
     interface SignInCallback {
-        void onSuccess(String token);
+        void onSuccess(String token, String broName);
         void onError(String error);
     }
 
@@ -36,6 +36,15 @@ public interface ServerApiCalls {
 
     interface UpdateCallback {
         void onSuccess();
+        void onError(String error);
+    }
+
+    // Send Calls
+    void sendBroMessage(String token, String broName, BroMessage message, UpdateCallback callback);
+    void getBroMessage(String token, String messageId, BroMessageCallback callback);
+
+    interface BroMessageCallback {
+        void onSuccess(BroMessage message);
         void onError(String error);
     }
 

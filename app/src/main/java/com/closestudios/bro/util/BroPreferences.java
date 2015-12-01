@@ -28,6 +28,16 @@ public class BroPreferences {
         edit.commit();
     }
 
+    public void setBroName(String broName) {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putString("broname",broName);
+        edit.commit();
+    }
+
+    public String getBroName() {
+        return prefs.getString("broname", "");
+    }
+
     public boolean hasToken() {
         return prefs.contains("token");
     }
@@ -54,6 +64,26 @@ public class BroPreferences {
         edit.putFloat("locationlat", (float)location.getLatitude());
         edit.putFloat("locationlong", (float)location.getLongitude());
         edit.apply();
+    }
+
+    public boolean hasGCMId() {
+        return prefs.contains("gcmid");
+    }
+
+    public String getGCMId() {
+        return prefs.getString("gcmid", null);
+    }
+
+    public void setGCMId(String gcmId) {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putString("gcmid",gcmId);
+        edit.commit();
+    }
+
+    public void clearGCMId() {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.remove("gcmid");
+        edit.commit();
     }
 
 }

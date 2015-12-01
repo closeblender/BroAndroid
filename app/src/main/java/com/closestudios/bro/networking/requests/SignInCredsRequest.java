@@ -14,18 +14,15 @@ public class SignInCredsRequest {
     ServerRequest serverRequest;
     String broName;
     String password;
+    String gcmId;
 
     public SignInCredsRequest(ServerRequest request) {
         serverRequest = request;
 
-        byte[] data = new byte[serverRequest.getDataBytes().length];
-        for(int i=0;i<data.length;i++) {
-            data[i] = serverRequest.getDataBytes()[i];
-        }
-
-        ArrayList<byte[]> blocks = DataMessage.getBlocks(data);
+        ArrayList<byte[]> blocks = DataMessage.getBlocks(serverRequest.getDataBytes());
         broName = new String (blocks.get(0));
         password = new String (blocks.get(1));
+        gcmId = new String (blocks.get(2));
 
     }
 
@@ -36,13 +33,17 @@ public class SignInCredsRequest {
     public String getPassword() {
         return password;
     }
+    public String getGcmId() {
+        return gcmId;
+    }
 
-    public static byte[] createMessage(String broName, String password) throws IOException {
+    public static byte[] createMessage(String broName, String password, String gcmId) throws IOException {
 
         ArrayList<byte[]> signInBlocks = new ArrayList<>();
 
         signInBlocks.add(broName.getBytes());
         signInBlocks.add(password.getBytes());
+        signInBlocks.add(gcmId.getBytes());
 
         return ServerRequest.createMessage(DataMessage.createBlocks(signInBlocks), ServerRequest.ServerRequestType.SignInCreds);
     }

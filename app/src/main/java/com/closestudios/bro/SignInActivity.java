@@ -57,7 +57,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     @Override
-    public void onSuccess(String token) {
+    public void onSuccess(String token, String broName) {
         dismissSpinner();
         BroPreferences.getPrefs(this).setToken(token);
         startActivity(new Intent(this, MainMenuActivity.class));

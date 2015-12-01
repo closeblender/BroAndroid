@@ -15,15 +15,22 @@ public class SignInResponse extends ErrorResponse {
     }
 
     public String getToken() {
-        byte[] token = new byte[getDataBytes().length-1];
-        for(int i=0;i<getDataBytes().length-1;i++) {
-            token[i] = getDataBytes()[i+1];
-        }
-        return new String(token);
+        ArrayList<byte[]> blocks = DataMessage.getBlocks(getDataBytes());
+        return new String(blocks.get(0));
     }
 
-    public static byte[] createSuccessMessage(String token) throws IOException {
-        return createMessage(true, token.getBytes());
+    public String getBroName() {
+        ArrayList<byte[]> blocks = DataMessage.getBlocks(getDataBytes());
+        return new String(blocks.get(1));
+    }
+
+    public static byte[] createSuccessMessage(String token, String broName) throws IOException {
+        ArrayList<byte[]> blocks = new ArrayList<>();
+
+        blocks.add(token.getBytes());
+        blocks.add(broName.getBytes());
+
+        return createMessage(true, DataMessage.createBlocks(blocks));
     }
 
 

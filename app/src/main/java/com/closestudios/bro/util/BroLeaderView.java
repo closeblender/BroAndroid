@@ -27,6 +27,11 @@ public class BroLeaderView extends BroViewBase {
         return getTimeString();
     }
 
+    @Override
+    public Bro getBro() {
+        return bro;
+    }
+
     public String getTimeString() {
         int days = (int)Math.floor(bro.totalTimeSecs/(60*60*24));
         int hours = (int)Math.floor((bro.totalTimeSecs - days * 60*60*24)/(60*60));

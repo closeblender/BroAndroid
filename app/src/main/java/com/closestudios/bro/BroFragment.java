@@ -20,12 +20,13 @@ import com.closestudios.bro.util.BroHub;
 import com.closestudios.bro.util.BroListView;
 import com.closestudios.bro.util.BroPreferences;
 import com.closestudios.bro.util.BroViewAdapter;
+import com.closestudios.bro.util.BroViewBase;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class BroFragment extends Fragment implements BroHub.BroHubListener {
+public class BroFragment extends Fragment implements BroHub.BroHubListener, BroViewAdapter.OnItemClickListener {
 
     @InjectView(R.id.progressBar)
     ProgressBar progressBar;
@@ -79,6 +80,7 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener {
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new BroViewAdapter();
+        mAdapter.setListener(this);
         recyclerView.setAdapter(mAdapter);
 
         // Get Bros
@@ -144,5 +146,11 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener {
         progressBar.setVisibility(View.GONE);
         Toast.makeText(getActivity(), error,Toast.LENGTH_SHORT).show();
 
+    }
+
+    @Override
+    public void onItemClick(BroViewBase bro) {
+        BroActionDialogFragment broDialog = BroActionDialogFragment.getInstance(bro.getBro().broName);
+        broDialog.show(getFragmentManager(), "bro_action");
     }
 }

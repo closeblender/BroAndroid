@@ -30,4 +30,9 @@ public class BroListView extends BroViewBase {
 
 
     }
+
+    @Override
+    public Bro getBro() {
+        return bro;
+    }
 }

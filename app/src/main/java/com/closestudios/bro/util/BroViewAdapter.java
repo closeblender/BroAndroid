@@ -19,9 +19,13 @@ public class BroViewAdapter extends RecyclerView.Adapter<BroViewAdapter.ViewHold
 
     BroViewBase[] mDataset;
     int colorOffset;
+    OnItemClickListener listener;
 
     int[] colors = {R.color.light_green, R.color.dark_blue, R.color.brown, R.color.red_orange, R.color.dark_green};
 
+    public interface OnItemClickListener {
+        void onItemClick(BroViewBase bro);
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
@@ -41,6 +45,10 @@ public class BroViewAdapter extends RecyclerView.Adapter<BroViewAdapter.ViewHold
         colorOffset = new Random().nextInt(20);
     }
 
+    public void setListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
     // Create new views (invoked by the layout manager)
     @Override
     public BroViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
@@ -54,12 +62,21 @@ public class BroViewAdapter extends RecyclerView.Adapter<BroViewAdapter.ViewHold
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
 
         holder.flBackdrop.setBackgroundColor(holder.flBackdrop.getContext().getResources().getColor(colors[position + colorOffset % colors.length]));
 
         holder.tvHeader.setText(mDataset[position].getHeader());
         holder.tvDetails.setText(mDataset[position].getDetails(holder.tvDetails.getContext()));
+
+        holder.flBackdrop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(listener != null) {
+                    listener.onItemClick(mDataset[position]);
+                }
+            }
+        });
 
     }
 
