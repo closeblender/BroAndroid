@@ -1,5 +1,7 @@
 package com.closestudios.bro.util;
 
+import android.content.Context;
+
 import com.closestudios.bro.networking.Bro;
 
 /**
@@ -21,7 +23,7 @@ public class BroLeaderView extends BroViewBase {
     }
 
     @Override
-    public String getDetails() {
+    public String getDetails(Context context) {
         return getTimeString();
     }
 
