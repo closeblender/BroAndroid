@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/green">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_weight="1"
+        android:text="Invite A Bro"
+        android:id="@+id/tvHeader"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:textStyle="bold"/>
+
+    <EditText
+        android:layout_margin="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:hint="Bro Name"
+        android:ems="10"
+        android:id="@+id/etBroName"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:id="@+id/tvCancel"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="@color/red_orange"/>
+
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Invite"
+            android:id="@+id/tvInvite"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="@color/dark_green"/>
+
+
+    </LinearLayout>
+
+</LinearLayout>

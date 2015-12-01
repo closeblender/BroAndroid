@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/dark_green"
+    android:id="@+id/flBackdrop">
+
+    <TextView
+        android:layout_marginLeft="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:text="Bro Name"
+        android:id="@+id/tvHeader"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_vertical|left"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:layout_marginRight="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:text="0.24mi"
+        android:id="@+id/tvDetails"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_vertical|right"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center_vertical"/>
+
+</FrameLayout>
