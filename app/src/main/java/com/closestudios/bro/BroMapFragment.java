@@ -71,6 +71,7 @@ public class BroMapFragment extends Fragment implements OnMapReadyCallback, BroH
         super.onResume();
         BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).subscribe(this);
 
+
     }
 
     @Override
@@ -94,11 +95,18 @@ public class BroMapFragment extends Fragment implements OnMapReadyCallback, BroH
     }
 
     @Override
-    public void onReceiveBros(Bro[] bros) {
-        this.bros = bros;
-        if(googleMap != null) {
-            setUpBroMarkers(getActivity(), googleMap, bros);
-        }
+    public void onReceiveBros(final Bro[] bros) {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                BroMapFragment.this.bros = bros;
+                if(googleMap != null) {
+                    setUpBroMarkers(getActivity(), googleMap, bros);
+                }
+            }
+        });
+
     }
 
     @Override
@@ -112,18 +120,26 @@ public class BroMapFragment extends Fragment implements OnMapReadyCallback, BroH
         map.setMyLocationEnabled(true);
 
         for(Bro bro : bros){
-            LatLng markerPoint = new LatLng(bro.location.latitude, bro.location.longitude);
+            if(bro.location != null) {
+                LatLng markerPoint = new LatLng(bro.location.latitude, bro.location.longitude);
 
-            map.addMarker(new MarkerOptions()
-                    .title(bro.broName)
-                    .position(markerPoint));
-
+                map.addMarker(new MarkerOptions()
+                        .title(bro.broName)
+                        .position(markerPoint));
+            }
         }
         LocationManager mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         try {
             Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 13));
+            if(loc != null) {
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 13));
+            } else {
+                loc = map.getMyLocation();
+                if(loc != null) {
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getLatitude(), loc.getLongitude()), 13));
+                }
+            }
         } catch (SecurityException e) {
             e.printStackTrace();
         }

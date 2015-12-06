@@ -21,14 +21,14 @@ public class ErrorResponse extends DataMessage {
 
     @Override
     public byte[] getDataBytes() {
-        if(!receivedRequest() || !getSuccess()) {
+        if(!receivedRequest()) {
             return null;
         }
 
         if(cachedSuccesData == null) {
-            cachedSuccesData = new byte[super.getDataBytes().length];
-            for(int i=1;i<super.getDataBytes().length;i++) {
-                cachedSuccesData[i-1] = super.getDataBytes()[i];
+            cachedSuccesData = new byte[super.getDataBytes().length - 1];
+            for(int i=0;i<super.getDataBytes().length - 1;i++) {
+                cachedSuccesData[i] = super.getDataBytes()[i+1];
             }
         }
 
@@ -40,6 +40,7 @@ public class ErrorResponse extends DataMessage {
     }
 
     public static byte[] createMessage(boolean success, byte[] data) throws IOException {
+
 
         byte[] message = new byte[data.length + 1];
         message[0] = (byte)(success ? 1 : 0);

@@ -29,7 +29,7 @@ public class BroLocation {
         ArrayList<byte[]> broBlocks = DataMessage.getBlocks(bytes);
 
         latitude = Double.parseDouble(new String(broBlocks.get(0)));
-        latitude = Double.parseDouble(new String(broBlocks.get(1)));
+        longitude = Double.parseDouble(new String(broBlocks.get(1)));
 
     }
 

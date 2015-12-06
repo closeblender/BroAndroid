@@ -1,5 +1,7 @@
 package com.closestudios.bro;
 
+import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,8 +13,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,8 +36,10 @@ import java.util.Map;
 public class BroLocationService  extends Service implements LocationListener, ServerApiCalls.UpdateCallback {
 
     static String TAG = "BroLocationService";
+    static int TIME_INTERVAL = 30000;
 
     LocationManager locationManager;
+    Handler pingHandler;
 
     public static boolean tryStartLocationService(Context context) {
         // Register the listener with the Location Manager to receive location updates
@@ -41,10 +47,19 @@ public class BroLocationService  extends Service implements LocationListener, Se
             Toast.makeText(context, "Enable App To Use Location Services", Toast.LENGTH_SHORT).show();
             return false;
         } else {
-            Intent intent = new Intent(context, BroLocationService.class);
-            context.startService(intent);
+            if(BroPreferences.getPrefs(context).getSendLocationUpdates()) {
+                Intent intent = new Intent(context, BroLocationService.class);
+                context.startService(intent);
+            } else {
+                Toast.makeText(context, "Toggle Locations Updates Are Off", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
+    }
+
+    public static void tryStopLocationService(Context context) {
+        Intent intent = new Intent(context, BroLocationService.class);
+        context.stopService(intent);
     }
 
     @Nullable
@@ -58,12 +73,16 @@ public class BroLocationService  extends Service implements LocationListener, Se
         super.onCreate();
         Log.d(TAG, "Location Service Created");
 
+        // Ping!
+        pingHandler = new Handler();
+        pingHandler.postDelayed(pingRunnable, TIME_INTERVAL);
+
         // Acquire a reference to the system Location Manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         // Register the listener with the Location Manager to receive location updates
         try {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10*1000, 5, this); // 10 Seconds, 5 Meters
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 1000, 5, this); // 10 Seconds, 5 Meters
 
             // Get last known intials
             Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -104,9 +123,7 @@ public class BroLocationService  extends Service implements LocationListener, Se
         Log.d(TAG, "Location Pinged!");
 
         BroPreferences.getPrefs(this).setLocation(location);
-        if(BroPreferences.getPrefs(this).hasToken()) {
-            ServerApi.getApi().createNewRequest().onUpdateLocation(BroPreferences.getPrefs(this).getToken(), new BroLocation(location.getLatitude(), location.getLongitude()), this);
-        }
+        pingLocation();
 
     }
 
@@ -123,6 +140,23 @@ public class BroLocationService  extends Service implements LocationListener, Se
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    Runnable pingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(BroPreferences.getPrefs(BroLocationService.this).getSendLocationUpdates()) {
+                pingLocation();
+                pingHandler.postDelayed(pingRunnable, TIME_INTERVAL);
+            }
+        }
+    };
+
+    public void pingLocation() {
+        // Ping Location!
+        if(BroPreferences.getPrefs(this).hasToken() && BroPreferences.getPrefs(this).hasLocation()) {
+            ServerApi.getApi().createNewRequest().onUpdateLocation(BroPreferences.getPrefs(this).getToken(), new BroLocation(BroPreferences.getPrefs(this).getLocationLat(), BroPreferences.getPrefs(this).getLocationLong()), this);
+        }
     }
 
     @Override

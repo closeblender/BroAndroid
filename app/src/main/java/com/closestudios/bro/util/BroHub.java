@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class BroHub implements ServerApiCalls.BroCallback{
 
     ArrayList<BroHubListener> listeners = new ArrayList<>();
-    String token;
+    public String token;
 
     Bro[] brosCache;
     boolean getBroRequestActive = false;
@@ -21,8 +21,21 @@ public class BroHub implements ServerApiCalls.BroCallback{
         this.token = token;
     }
 
+    public void updateToken(String newToken) {
+        if(token == null || !token.equals(newToken)) {
+            brosCache = null;
+            token = newToken;
+            if(token != null) {
+                getBros(null, false);
+            }
+        } else {
+            token = newToken;
+        }
+    }
+
     @Override
     public void onSuccess(Bro[] bros) {
+        getBroRequestActive = false;
         brosCache = bros;
         for (int i = 0; i < listeners.size(); i++) {
             if (listeners.get(i) != null) {
@@ -33,6 +46,7 @@ public class BroHub implements ServerApiCalls.BroCallback{
 
     @Override
     public void onError(String error) {
+        getBroRequestActive = false;
         brosCache = null;
         for (int i = 0; i < listeners.size(); i++) {
             if (listeners.get(i) != null) {
@@ -40,6 +54,16 @@ public class BroHub implements ServerApiCalls.BroCallback{
             }
         }
     }
+
+    public void triggerGettingBros() {
+        getBroRequestActive = true;
+        for(int i=0;i<listeners.size();i++) {
+            if(listeners.get(i) != null) {
+                listeners.get(i).onGettingBros();
+            }
+        }
+    }
+
 
     public interface BroHubListener {
         void onGettingBros();
@@ -62,25 +86,18 @@ public class BroHub implements ServerApiCalls.BroCallback{
             return;
         }
 
-        // We need to load bros!
-        for(int i=0;i<listeners.size();i++) {
-            if(listeners.get(i) != null) {
-                listeners.get(i).onGettingBros();
-            }
-        }
 
         if(!getBroRequestActive) {
-            getBroRequestActive  = true;
+            // We need to load bros!
+            triggerGettingBros();
             ServerApi.getApi().createNewRequest().getBros(token, new ServerApiCalls.BroCallback() {
                 @Override
                 public void onSuccess(Bro[] bros) {
-                    getBroRequestActive = false;
                     BroHub.this.onSuccess(bros);
                 }
 
                 @Override
                 public void onError(String error) {
-                    getBroRequestActive = false;
                     BroHub.this.onError(error);
                 }
             });
@@ -89,14 +106,24 @@ public class BroHub implements ServerApiCalls.BroCallback{
     }
 
     public void addBro(String broName) {
+        triggerGettingBros();
         ServerApi.getApi().createNewRequest().addBro(token, broName, this);
     }
     public void removeBro(String broName) {
+        triggerGettingBros();
         ServerApi.getApi().createNewRequest().removeBro(token, broName, this);
     }
     public void blockBro(String broName) {
+        triggerGettingBros();
         ServerApi.getApi().createNewRequest().blockBro(token, broName, this);
     }
 
+    public Bro[] getBrosCache() {
+        return brosCache;
+    }
+
+    public boolean isGettingBros() {
+        return getBroRequestActive;
+    }
 
 }

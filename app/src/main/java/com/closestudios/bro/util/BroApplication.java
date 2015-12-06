@@ -24,6 +24,7 @@ public class BroApplication extends Application {
         if(broHub == null) {
             broHub = new BroHub(token);
         }
+        broHub.updateToken(token);
         return broHub;
     }
 

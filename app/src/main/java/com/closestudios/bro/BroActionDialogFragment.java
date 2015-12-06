@@ -71,7 +71,7 @@ public class BroActionDialogFragment extends DialogFragment {
         tvSendBro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!(getActivity() instanceof MainMenuActivity)) {
+                if ((getActivity() instanceof MainMenuActivity)) {
 
                     // Send Bro
                     try {
@@ -94,7 +94,7 @@ public class BroActionDialogFragment extends DialogFragment {
         tvBlockBro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!(getActivity() instanceof MainMenuActivity)) {
+                if ((getActivity() instanceof MainMenuActivity)) {
 
                     final MainMenuActivity act = ((MainMenuActivity)getActivity());
 
@@ -124,7 +124,7 @@ public class BroActionDialogFragment extends DialogFragment {
         tvRemoveBro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!(getActivity() instanceof MainMenuActivity)) {
+                if ((getActivity() instanceof MainMenuActivity)) {
 
                     final MainMenuActivity act = ((MainMenuActivity)getActivity());
 

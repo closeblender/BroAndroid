@@ -1,6 +1,10 @@
 package com.closestudios.bro;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -33,10 +37,16 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         tvBro.setOnClickListener(this);
         tvSignIn.setOnClickListener(this);
 
-        if(BroPreferences.getPrefs(this).getToken() != null) {
-            // Attempt to sign in with token
-            ServerApi.getApi().createNewRequest().signIn(BroPreferences.getPrefs(this).getToken(), this);
-            showSpinner("Signing In", false);
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    1);
+        } else {
+            if(BroPreferences.getPrefs(this).getToken() != null) {
+                // Attempt to sign in with token
+                ServerApi.getApi().createNewRequest().signIn(BroPreferences.getPrefs(this).getToken(), this);
+                showSpinner("Signing In", false);
+            }
         }
 
     }
@@ -46,10 +56,12 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tvBro:
+                BroLocationService.tryStartLocationService(this);
                 SignInUpDialogFragment signUpDialog = SignInUpDialogFragment.getInstance(true);
                 signUpDialog.show(getSupportFragmentManager(), "sign_up");
                 break;
             case R.id.tvSignIn:
+                BroLocationService.tryStartLocationService(this);
                 SignInUpDialogFragment signInDialog = SignInUpDialogFragment.getInstance(false);
                 signInDialog.show(getSupportFragmentManager(), "sign_in");
                 break;
@@ -57,18 +69,31 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     @Override
-    public void onSuccess(String token, String broName) {
-        dismissSpinner();
-        BroPreferences.getPrefs(this).setToken(token);
-        BroPreferences.getPrefs(this).setBroName(broName);
-        finish();
-        startActivity(new Intent(this, MainMenuActivity.class));
+    public void onSuccess(final String token, final String broName) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissSpinner();
+                BroPreferences.getPrefs(SignInActivity.this).setToken(token);
+                BroPreferences.getPrefs(SignInActivity.this).setBroName(broName);
+                finish();
+                startActivity(new Intent(SignInActivity.this, MainMenuActivity.class));
+            }
+        });
+
     }
 
     @Override
-    public void onError(String error) {
-        dismissSpinner();
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+    public void onError(final String error) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissSpinner();
+                Toast.makeText(SignInActivity.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     public void showSpinner(String title, boolean cancelable) {

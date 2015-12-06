@@ -34,15 +34,20 @@ public class BroGcmListenerService extends GcmListenerService {
     @Override
     public void onMessageReceived(String from, Bundle data) {
         super.onMessageReceived(from, data);
-        String message = data.getString("message");
+        String message = data.getString("messageId");
         Log.d(TAG, "From: " + from);
-        Log.d(TAG, "Message: " + message);
+        Log.d(TAG, "MessageID: " + message);
 
         // Get Message Id, Get Message, Notify Bro
         String messageId = message; // Is the message JSON?
 
         // Get the message
         ServerApi.getApi().createNewRequest().getBroMessage(BroPreferences.getPrefs(this).getToken(), messageId, new ServerApiCalls.BroMessageCallback() {
+            @Override
+            public void onSuccessMessage() {
+
+            }
+
             @Override
             public void onSuccess(BroMessage message) {
                 Log.d(TAG, "Received Message: " + message.messageTitle);
@@ -65,13 +70,14 @@ public class BroGcmListenerService extends GcmListenerService {
 
     private void notifyUser(BroMessage message) throws IOException {
 
-
-        File tempMp3 = File.createTempFile("tempfile", "mp3", getCacheDir());
+        File tempMp3 = new File(getCacheDir(), "tempfile.mp3");
 
         FileOutputStream fos = new FileOutputStream(tempMp3);
         fos.write(message.audioBytes);
         fos.close();
 
+
+        Uri sound = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.bro);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
@@ -104,6 +110,7 @@ public class BroGcmListenerService extends GcmListenerService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(9, mBuilder.build());
+
 
     }
 

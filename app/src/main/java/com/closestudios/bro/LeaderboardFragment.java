@@ -2,6 +2,7 @@ package com.closestudios.bro;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -31,16 +32,17 @@ import butterknife.InjectView;
 /**
  * Created by closestudios on 11/8/15.
  */
-public class LeaderboardFragment extends Fragment implements BroHub.BroHubListener {
+public class LeaderboardFragment extends Fragment implements BroHub.BroHubListener,
+        SwipeRefreshLayout.OnRefreshListener {
 
-    @InjectView(R.id.progressBar)
-    ProgressBar progressBar;
     @InjectView(R.id.my_recycler_view)
     RecyclerView recyclerView;
     BroViewAdapter mAdapter;
     RecyclerView.LayoutManager mLayoutManager;
     @InjectView(R.id.tvNoBros)
     TextView tvNoBros;
+    @InjectView(R.id.swipeRefreshLayout)
+    SwipeRefreshLayout swipeRefreshLayout;
 
     public static LeaderboardFragment newInstance() {
         LeaderboardFragment fragment = new LeaderboardFragment();
@@ -89,48 +91,74 @@ public class LeaderboardFragment extends Fragment implements BroHub.BroHubListen
         BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBros(this, true);
 
         // Show Progress Bar
-        progressBar.setVisibility(View.VISIBLE);
-        tvNoBros.setVisibility(View.GONE);
+        swipeRefreshLayout.setRefreshing(BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).isGettingBros());
+        tvNoBros.setVisibility(!BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).isGettingBros() && BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBrosCache() != null &&
+                BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBrosCache().length == 0 ? View.VISIBLE : View.GONE);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         return view;
     }
 
     @Override
     public void onGettingBros() {
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onReceiveBros(Bro[] bros) {
-
-        // Has bros?
-        tvNoBros.setVisibility(bros.length == 0 ? View.GONE : View.VISIBLE);
-
-        // Show Bros
-        progressBar.setVisibility(View.GONE);
-
-        Arrays.sort(bros, new Comparator<Bro>() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public int compare(Bro b1, Bro b2) {
-                return b1.totalTimeSecs - b2.totalTimeSecs;
+            public void run() {
+                swipeRefreshLayout.setRefreshing(true);
             }
         });
 
-        BroLeaderView[] broLeaderViews = new BroLeaderView[bros.length];
-        for(int i=0;i<bros.length;i++) {
-            broLeaderViews[i] = new BroLeaderView(bros[i], i + 1);
-        }
-        mAdapter.setBros(broLeaderViews);
+    }
+
+    @Override
+    public void onReceiveBros(final Bro[] bros) {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Has bros?
+                tvNoBros.setVisibility(bros.length == 0 ? View.VISIBLE : View.GONE);
+
+                // Show Bros
+                swipeRefreshLayout.setRefreshing(false);
+
+                Arrays.sort(bros, new Comparator<Bro>() {
+                    @Override
+                    public int compare(Bro b1, Bro b2) {
+                        return b1.totalTimeSecs - b2.totalTimeSecs;
+                    }
+                });
+
+                BroLeaderView[] broLeaderViews = new BroLeaderView[bros.length];
+                for (int i = 0; i < bros.length; i++) {
+                    broLeaderViews[i] = new BroLeaderView(bros[i], i + 1);
+                }
+                mAdapter.setBros(broLeaderViews);
+
+            }
+        });
 
     }
 
     @Override
-    public void onReceiveBrosFailed(String error) {
+    public void onReceiveBrosFailed(final String error) {
 
-        progressBar.setVisibility(View.GONE);
-        Toast.makeText(getActivity(), error, Toast.LENGTH_SHORT).show();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(getActivity(), error, Toast.LENGTH_SHORT).show();
+
+            }
+        });
 
     }
 
+    @Override
+    public void onRefresh() {
+        BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBros(this, false);
+    }
 
 }

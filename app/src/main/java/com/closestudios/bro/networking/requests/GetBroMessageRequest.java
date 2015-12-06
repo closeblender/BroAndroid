@@ -38,7 +38,7 @@ public class GetBroMessageRequest {
         data.add(token.getBytes());
         data.add(messageId.getBytes());
 
-        return ServerRequest.createMessage(DataMessage.createBlocks(data), ServerRequest.ServerRequestType.SendBroMessage);
+        return ServerRequest.createMessage(DataMessage.createBlocks(data), ServerRequest.ServerRequestType.GetBroMessage);
     }
 
 

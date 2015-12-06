@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -21,7 +22,7 @@ import com.closestudios.bro.util.TabGroup;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class MainMenuActivity extends AppCompatActivity implements ServerApiCalls.UpdateCallback, ServerApiCalls.BroCallback {
+public class MainMenuActivity extends AppCompatActivity implements ServerApiCalls.UpdateCallback, ServerApiCalls.BroCallback, ServerApiCalls.BroMessageCallback {
 
     @InjectView(R.id.pager)
     ViewPager mPager;
@@ -39,6 +40,7 @@ public class MainMenuActivity extends AppCompatActivity implements ServerApiCall
     @InjectView(R.id.vLeaderboard)
     View vLeaderboard;
 
+    MenuItem updateLocation;
     MainMenuSlideAdapter mPagerAdapter;
     TabController tabController;
     SpinnerDialogFragment spinnerDialogFragment;
@@ -71,6 +73,8 @@ public class MainMenuActivity extends AppCompatActivity implements ServerApiCall
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main_menu, menu);
+        updateLocation = menu.findItem(R.id.update_location);
+        updateLocation.setChecked(BroPreferences.getPrefs(this).getSendLocationUpdates());
         return true;
     }
 
@@ -84,6 +88,13 @@ public class MainMenuActivity extends AppCompatActivity implements ServerApiCall
             BroPreferences.getPrefs(this).signOut();
             finish();
             startActivity(new Intent(this, SignInActivity.class));
+
+            return true;
+        }
+        if (id == R.id.update_location) {
+
+            updateLocation.setChecked(!updateLocation.isChecked());
+            BroPreferences.getPrefs(this).setSendLocationUpdates(updateLocation.isChecked(), this);
 
             return true;
         }
@@ -107,18 +118,53 @@ public class MainMenuActivity extends AppCompatActivity implements ServerApiCall
 
     @Override
     public void onSuccess() {
-        dismissSpinner();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissSpinner();
+            }
+        });
+
     }
 
     @Override
     public void onSuccess(Bro[] bros) {
-        // Ignore
-        dismissSpinner();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Ignore
+                dismissSpinner();
+            }
+        });
+
     }
 
     @Override
-    public void onError(String error) {
-        dismissSpinner();
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+    public void onSuccessMessage() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Ignore
+                dismissSpinner();
+                Toast.makeText(MainMenuActivity.this, "Bro Sent", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onSuccess(BroMessage message) {
+
+    }
+
+    @Override
+    public void onError(final String error) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dismissSpinner();
+                Toast.makeText(MainMenuActivity.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 }

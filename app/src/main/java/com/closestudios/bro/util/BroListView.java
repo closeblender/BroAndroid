@@ -23,7 +23,11 @@ public class BroListView extends BroViewBase {
     public String getDetails(Context context) {
 
         if(BroPreferences.getPrefs(context).hasLocation()) {
-            return bro.location.getDistance(new BroLocation(BroPreferences.getPrefs(context).getLocationLat(),BroPreferences.getPrefs(context).getLocationLong()));
+            if(bro.location != null) {
+                return bro.location.getDistance(new BroLocation(BroPreferences.getPrefs(context).getLocationLat(), BroPreferences.getPrefs(context).getLocationLong()));
+            } else {
+                return "";
+            }
         } else {
             return "";
         }

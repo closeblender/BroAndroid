@@ -2,6 +2,7 @@ package com.closestudios.bro;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -26,18 +27,17 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class BroFragment extends Fragment implements BroHub.BroHubListener, BroViewAdapter.OnItemClickListener {
+public class BroFragment extends Fragment implements BroHub.BroHubListener, BroViewAdapter.OnItemClickListener,
+        SwipeRefreshLayout.OnRefreshListener {
 
-    @InjectView(R.id.progressBar)
-    ProgressBar progressBar;
     @InjectView(R.id.my_recycler_view)
     RecyclerView recyclerView;
     BroViewAdapter mAdapter;
     RecyclerView.LayoutManager mLayoutManager;
     @InjectView(R.id.tvNoBros)
     TextView tvNoBros;
-
-
+    @InjectView(R.id.swipeRefreshLayout)
+    SwipeRefreshLayout swipeRefreshLayout;
 
     public static BroFragment newInstance() {
         BroFragment fragment = new BroFragment();
@@ -88,8 +88,12 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener, BroV
         BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBros(this, true);
 
         // Show Progress Bar
-        progressBar.setVisibility(View.VISIBLE);
-        tvNoBros.setVisibility(View.GONE);
+        swipeRefreshLayout.setRefreshing(BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).isGettingBros());
+        tvNoBros.setVisibility(!BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).isGettingBros() && BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBrosCache() != null &&
+                BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBrosCache().length == 0 ? View.VISIBLE : View.GONE);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setColorSchemeColors(R.color.dark_green, R.color.blue,R.color.green);
 
         return view;
     }
@@ -108,11 +112,11 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener, BroV
                 addDialog.show(getActivity().getSupportFragmentManager(), "add_bro");
                 return true;
             case R.id.remove_bro:
-                ModifyBroDialogFragment removeDialog = ModifyBroDialogFragment.getInstance(ModifyBroDialogFragment.ModifyBroType.Add);
+                ModifyBroDialogFragment removeDialog = ModifyBroDialogFragment.getInstance(ModifyBroDialogFragment.ModifyBroType.Remove);
                 removeDialog.show(getActivity().getSupportFragmentManager(), "remove_bro");
                 return true;
             case R.id.block_bro:
-                ModifyBroDialogFragment blockDialog = ModifyBroDialogFragment.getInstance(ModifyBroDialogFragment.ModifyBroType.Add);
+                ModifyBroDialogFragment blockDialog = ModifyBroDialogFragment.getInstance(ModifyBroDialogFragment.ModifyBroType.Block);
                 blockDialog.show(getActivity().getSupportFragmentManager(), "block_bro");
                 return true;
         }
@@ -121,30 +125,48 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener, BroV
 
     @Override
     public void onGettingBros() {
-        progressBar.setVisibility(View.VISIBLE);
-    }
 
-    @Override
-    public void onReceiveBros(Bro[] bros) {
-
-        // Has bros?
-        tvNoBros.setVisibility(bros.length == 0 ? View.GONE : View.VISIBLE);
-
-        // Show Bros
-        progressBar.setVisibility(View.GONE);
-        BroListView[] broListViews = new BroListView[bros.length];
-        for(int i=0;i<bros.length;i++) {
-            broListViews[i] = new BroListView(bros[i]);
-        }
-        mAdapter.setBros(broListViews);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                swipeRefreshLayout.setRefreshing(true);
+            }
+        });
 
     }
 
     @Override
-    public void onReceiveBrosFailed(String error) {
+    public void onReceiveBros(final Bro[] bros) {
 
-        progressBar.setVisibility(View.GONE);
-        Toast.makeText(getActivity(), error,Toast.LENGTH_SHORT).show();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Has bros?
+                tvNoBros.setVisibility(bros.length == 0 ? View.VISIBLE : View.GONE);
+
+                // Show Bros
+                swipeRefreshLayout.setRefreshing(false);
+                BroListView[] broListViews = new BroListView[bros.length];
+                for (int i = 0; i < bros.length; i++) {
+                    broListViews[i] = new BroListView(bros[i]);
+                }
+                mAdapter.setBros(broListViews);
+            }
+        });
+
+    }
+
+    @Override
+    public void onReceiveBrosFailed(final String error) {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(getActivity(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
     }
 
@@ -153,4 +175,10 @@ public class BroFragment extends Fragment implements BroHub.BroHubListener, BroV
         BroActionDialogFragment broDialog = BroActionDialogFragment.getInstance(bro.getBro().broName);
         broDialog.show(getFragmentManager(), "bro_action");
     }
+
+    @Override
+    public void onRefresh() {
+        BroApplication.getBroHub(BroPreferences.getPrefs(getActivity()).getToken()).getBros(this, false);
+    }
+
 }

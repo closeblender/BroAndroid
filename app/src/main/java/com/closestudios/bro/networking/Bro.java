@@ -26,7 +26,11 @@ public class Bro {
         id = Integer.parseInt(new String(broBlocks.get(0)));
         broName = new String(broBlocks.get(1));
         totalTimeSecs = Integer.parseInt(new String(broBlocks.get(2)));
-        location = new BroLocation(broBlocks.get(3));
+        if(broBlocks.size() >= 4) {
+            location = new BroLocation(broBlocks.get(3));
+        } else {
+            location = null;
+        }
 
     }
 
@@ -36,7 +40,9 @@ public class Bro {
         broBlocks.add((id + "").getBytes());
         broBlocks.add(broName.getBytes());
         broBlocks.add((totalTimeSecs + "").getBytes());
-        broBlocks.add(location.getBytes());
+        if(location != null) {
+            broBlocks.add(location.getBytes());
+        }
 
         return DataMessage.createBlocks(broBlocks);
     }

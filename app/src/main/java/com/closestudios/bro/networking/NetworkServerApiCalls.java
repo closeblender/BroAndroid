@@ -1,5 +1,7 @@
 package com.closestudios.bro.networking;
 
+import android.util.Log;
+
 import com.closestudios.bro.R;
 import com.closestudios.bro.networking.requests.AddBroRequest;
 import com.closestudios.bro.networking.requests.BlockBroRequest;
@@ -30,6 +32,7 @@ import java.net.Socket;
  */
 public class NetworkServerApiCalls implements ServerApiCalls {
 
+    static String TAG = "NetworkServerAPI";
     //ServerAPIKey:AIzaSyAO39IewFjVE2Mdc4xq3et6j2w0lynoKM4
     //SenderID:227936239117
 
@@ -45,6 +48,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void signUp(final String broName, final String password, final SignInCallback callback) {
+        Log.d(TAG, "Sign Up: " + broName + ", " + password);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -79,6 +83,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void signIn(final String broName, final String password, final SignInCallback callback) {
+        Log.d(TAG, "Sign In: " + broName + ", " + password);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -114,6 +119,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void signIn(final String token, final SignInCallback callback) {
+        Log.d(TAG, "Sign In: " + token);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -149,6 +155,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void getBros(final String token, final BroCallback callback) {
+        Log.d(TAG, "Get Bros: " + token);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -159,6 +166,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
                         if(getBrosResponse != null) {
 
+                            Log.d(TAG, "Get Bros Success: " + getBrosResponse.getSuccess());
                             if (getBrosResponse.getSuccess()) {
                                 callback.onSuccess(getBrosResponse.getBros());
                             } else {
@@ -183,6 +191,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void addBro(final String token, final String broName, final BroCallback callback) {
+        Log.d(TAG, "Add Bro: " + token + ", " + broName);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -217,6 +226,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void removeBro(final String token, final String broName, final BroCallback callback) {
+        Log.d(TAG, "Remove Bro: " + token + ", " + broName);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -251,6 +261,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void blockBro(final String token, final String broName, final BroCallback callback) {
+        Log.d(TAG, "Block Bro: " + token + ", " + broName);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -285,6 +296,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void onUpdateLocation(final String token, final BroLocation location, final UpdateCallback callback) {
+        Log.d(TAG, "Update Location:  " + token + ", " + location.latitude + ", " + location.longitude);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -318,7 +330,8 @@ public class NetworkServerApiCalls implements ServerApiCalls {
     }
 
     @Override
-    public void sendBroMessage(final String token, final String broName, final BroMessage message, final UpdateCallback callback) {
+    public void sendBroMessage(final String token, final String broName, final BroMessage message, final BroMessageCallback callback) {
+        Log.d(TAG, "Send Bro Message: " + token + ", " + broName + ", " + message.messageTitle + ", " + message.messageDetails);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -330,7 +343,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
                         if(sendBroMessage != null) {
 
                             if (sendBroMessage.getSuccess()) {
-                                callback.onSuccess();
+                                callback.onSuccessMessage();
                             } else {
                                 callback.onError(sendBroMessage.getError());
                             }
@@ -353,6 +366,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
 
     @Override
     public void getBroMessage(final String token, final String messageId, final BroMessageCallback callback) {
+        Log.d(TAG, "Get Bro Message: " + token + ", " + messageId);
         try {
             new Thread(new Runnable() {
                 public void run() {
@@ -396,6 +410,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
             OutputStream outToServer = socket.getOutputStream();
             InputStream inFromServer = socket.getInputStream();
 
+            //printByteArray(message);
             // Send Register Message
             outToServer.write(message);
             outToServer.flush();
@@ -403,7 +418,7 @@ public class NetworkServerApiCalls implements ServerApiCalls {
             // Get response
             response.getBytesFromInput(inFromServer);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         } finally {
@@ -415,6 +430,8 @@ public class NetworkServerApiCalls implements ServerApiCalls {
                 }
             }
         }
+
+        //printByteArray(response.getDataBytes());
 
         return response;
     }
@@ -430,6 +447,22 @@ public class NetworkServerApiCalls implements ServerApiCalls {
             BroPreferences.getPrefs(BroApplication.getContext()).setGCMId(token);
             return token;
         }
+    }
+
+    private void printByteArray(byte[] data) {
+
+        if(data == null) {
+            Log.d("Network", "Null!");
+            return;
+        }
+
+        String hexString = "";
+
+        for(int i=0;i<data.length;i++) {
+            hexString += data[i] + " ";
+        }
+
+        Log.d("Network", hexString);
     }
 
 }

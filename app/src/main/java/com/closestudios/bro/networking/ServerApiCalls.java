@@ -40,10 +40,11 @@ public interface ServerApiCalls {
     }
 
     // Send Calls
-    void sendBroMessage(String token, String broName, BroMessage message, UpdateCallback callback);
+    void sendBroMessage(String token, String broName, BroMessage message, BroMessageCallback callback);
     void getBroMessage(String token, String messageId, BroMessageCallback callback);
 
     interface BroMessageCallback {
+        void onSuccessMessage();
         void onSuccess(BroMessage message);
         void onError(String error);
     }

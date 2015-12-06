@@ -23,11 +23,20 @@ public class DataMessage {
         allData = new ArrayList<>();
     }
 
-    public void getBytesFromInput(InputStream is) throws IOException {
+    public void getBytesFromInput(InputStream is) throws Exception {
         byte[] data = new byte[1024];
-        while(!receivedRequest()) {
+        int noDataCheck = 0;
+        while(!receivedRequest() && noDataCheck < 5) {
             int length = is.read(data, 0, data.length);
+            if(length == 0) {
+                noDataCheck ++;
+            } else if(length == -1) {
+                noDataCheck = 10;
+            }
             receivedBytes(data, length);
+        }
+        if(noDataCheck >= 5) {
+            throw new Exception("Disconnected");
         }
     }
 

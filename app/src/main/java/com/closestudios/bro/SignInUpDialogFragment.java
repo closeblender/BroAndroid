@@ -79,7 +79,7 @@ public class SignInUpDialogFragment extends DialogFragment {
                     return;
                 }
 
-                if(!(getActivity() instanceof SignInActivity)) {
+                if((getActivity() instanceof SignInActivity)) {
 
                     // Sign In/ Sign Up
                     if(signUp) {

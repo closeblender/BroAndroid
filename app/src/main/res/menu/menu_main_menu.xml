@@ -4,5 +4,12 @@
     tools:context="com.closestudios.bro.MainMenuActivity">
 
     <item android:id="@+id/action_sign_out" android:title="Sign Out"
-        android:orderInCategory="1" app:showAsAction="never" />
+        android:orderInCategory="100" app:showAsAction="never" />
+
+    <item
+        android:id="@+id/update_location"
+        android:orderInCategory="99"
+        android:title="Update Location"
+        android:checkable="true" />
+
 </menu>

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 
+import com.closestudios.bro.BroLocationService;
+import com.closestudios.bro.networking.BroLocation;
+
 /**
  * Created by closestudios on 11/23/15.
  */
@@ -20,6 +23,22 @@ public class BroPreferences {
         if(instance == null)
             instance = new BroPreferences(context);
         return instance;
+    }
+
+    public void setSendLocationUpdates(boolean sendLocation, Context context) {
+        SharedPreferences.Editor edit = prefs.edit();
+        edit.putBoolean("location",sendLocation);
+        edit.commit();
+
+        if(sendLocation) {
+            BroLocationService.tryStartLocationService(context);
+        } else {
+            BroLocationService.tryStopLocationService(context);
+        }
+    }
+
+    public boolean getSendLocationUpdates() {
+        return prefs.getBoolean("location", true);
     }
 
     public void signOut() {
