@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -70,12 +71,32 @@ public class BroGcmListenerService extends GcmListenerService {
 
     private void notifyUser(BroMessage message) throws IOException {
 
-        File tempMp3 = new File(getCacheDir(), "tempfile.mp3");
+        String filename = "tempSendNotification" + message.extension;
+        File tempMp3 = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_NOTIFICATIONS), filename);
+//
+//        Log.d(TAG, "1" + tempMp3.createNewFile());
+//        Log.d(TAG, "2" + tempMp3.canRead());
+//        Log.d(TAG, "3" + tempMp3.canWrite());
+        FileOutputStream outputStream;
 
-        FileOutputStream fos = new FileOutputStream(tempMp3);
-        fos.write(message.audioBytes);
-        fos.close();
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(tempMp3);
+            out.write(message.audioBytes);
+            out.flush();  // will create the file physically.
+        } catch (IOException e) {
+            Log.w("Create File", "Failed to write into " + tempMp3.getName());
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                }
+            }
+        }
 
+
+        //Log.d(TAG, "5" + tempMp3.exists());
 
         Uri sound = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.bro);
 

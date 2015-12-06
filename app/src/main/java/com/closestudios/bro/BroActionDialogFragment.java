@@ -57,6 +57,8 @@ public class BroActionDialogFragment extends DialogFragment {
 
 
         TextView tvSendBro = (TextView)view.findViewById(R.id.tvSendBro);
+        TextView tvSendCustomBro = (TextView)view.findViewById(R.id.tvSendCustomBro);
+
         TextView tvRemoveBro = (TextView)view.findViewById(R.id.tvRemoveBro);
         TextView tvBlockBro = (TextView)view.findViewById(R.id.tvBlockBro);
 
@@ -76,7 +78,7 @@ public class BroActionDialogFragment extends DialogFragment {
                     // Send Bro
                     try {
                         ServerApi.getApi().createNewRequest().sendBroMessage(BroPreferences.getPrefs(getActivity()).getToken(),
-                                broName, new BroMessage("Bro!", "You received a bro from " + BroPreferences.getPrefs(getActivity()).getBroName(), getAudioBytes(getActivity())), (MainMenuActivity) getActivity());
+                                broName, new BroMessage("Bro!", "You received a bro from " + BroPreferences.getPrefs(getActivity()).getBroName(), getAudioBytes(getActivity()), ".mp3"), (MainMenuActivity) getActivity());
 
                         ((MainMenuActivity) getActivity()).showSpinner("Sending Bro", false);
 
@@ -88,6 +90,17 @@ public class BroActionDialogFragment extends DialogFragment {
                     dismiss();
 
                 }
+            }
+        });
+
+        tvSendCustomBro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                BroAudioDialogFragment broDialog = BroAudioDialogFragment.getInstance(broName);
+                broDialog.show(getFragmentManager(), "bro_audio");
+                dismiss();
+
             }
         });
 
@@ -162,7 +175,7 @@ public class BroActionDialogFragment extends DialogFragment {
 
     public static byte[] convertStreamToByteArray(InputStream is) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buff = new byte[10240];
+        byte[] buff = new byte[1024];
         int i = Integer.MAX_VALUE;
         while ((i = is.read(buff, 0, buff.length)) > 0) {
             baos.write(buff, 0, i);

@@ -9,7 +9,7 @@ public class ServerApi implements ServerApiCalls.NetworkCall{
 
     private static ServerApi instance;
     ArrayList<ServerApiCalls> apiCalls = new ArrayList<>();
-    static String host = "192.168.1.9";
+    static String host = "192.168.1.5";
     static int port = 9090;
 
     public ServerApi() {
